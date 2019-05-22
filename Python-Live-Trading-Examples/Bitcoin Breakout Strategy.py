@@ -1,11 +1,13 @@
 import fxcmpy
 import time
 import datetime as dt
+import numpy as np
+import pandas as pd
 
 ###### USER PARAMETERS ######
-token = 'INSERT-TOKEN-HERE'
-symbol = 'BTC/USD'
-timeframe = "H1"	        # (m1,m5,m15,m30,H1,H2,H3,H4,H6,H8,D1,W1,M1)
+token = '18ff6f319bfe973503ef070ab949c9d484e525ed'
+symbol = 'US30'
+timeframe = "m1"	        # (m1,m5,m15,m30,H1,H2,H3,H4,H6,H8,D1,W1,M1)
 channel_periods = 24
 amount = 1
 limitmultiplier = 1.5
@@ -63,20 +65,9 @@ def GetLatestPriceData():
 	global pricedata
 	
 	# Normal operation will update pricedata on first attempt
-	new_pricedata = con.get_candles(symbol, period=timeframe, number=numberofcandles)
-	if new_pricedata.index.values[len(new_pricedata.index.values)-1] != pricedata.index.values[len(pricedata.index.values)-1]:
-		pricedata= new_pricedata
-		return True
-		
-	counter = 0
-	# If data is not available on first attempt, try up to 3 times to update pricedata
-	while new_pricedata.index.values[len(new_pricedata.index.values)-1] == pricedata.index.values[len(pricedata.index.values)-1] and counter < 3:
-		print("No updated prices found, trying again in 10 seconds...")
-		counter+=1
-		time.sleep(10)
-		new_pricedata = con.get_candles(symbol, period=timeframe, number=numberofcandles)
-	if new_pricedata.index.values[len(new_pricedata.index.values)-1] != pricedata.index.values[len(pricedata.index.values)-1]:
-		pricedata = new_pricedata
+	new_pricedata = con.get_prices(symbol)
+	if new_pricedata.index[-1].second != pricedata.index[-1].second:
+		pricedata= new_pricedata.loc[new_pricedata.index > pd.to_datetime(dt.datetime.now().timestamp()-60*channel_periods, unit='s')]
 		return True
 	else:
 		return False		
@@ -91,8 +82,8 @@ def Update(tickdata=None, tickdataframe=None):
 		print(str(dt.datetime.now()) + "	 " + timeframe + " Bar Closed - Running Update Function...")
 		
 		# Update Channel High/Low
-		channel_high = max(pricedata['bidhigh'][-channel_periods:])
-		channel_low = min(pricedata['bidlow'][-channel_periods:])
+		channel_high = max(pricedata['Ask'][-channel_periods:])
+		channel_low = min(pricedata['Bid'][-channel_periods:])
 		print("	  Calculating Channel High/Low Values.")
 		print("	  Channel High: " + str(channel_high))
 		print("	  Channel Low: " + str(channel_low))
