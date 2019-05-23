@@ -82,8 +82,13 @@ def Update(tickdata=None, tickdataframe=None):
 		print(str(dt.datetime.now()) + "	 " + timeframe + " Bar Closed - Running Update Function...")
 		
 		# Update Channel High/Low
-		channel_high = max(pricedata['Ask'][-channel_periods:])
-		channel_low = min(pricedata['Bid'][-channel_periods:])
+		if ((pricedata.index[-1]-pricedata.index[0]).total_seconds() < 60*channel_periods):
+			channel_high = max(channel_high, max(pricedata['Ask']))
+			channel_low = min(channel_low, min(pricedata['Bid']))
+		else:
+			channel_high = max(pricedata['Ask'])
+			channel_low = min(pricedata['Bid'])
+			
 		print("	  Calculating Channel High/Low Values.")
 		print("	  Channel High: " + str(channel_high))
 		print("	  Channel Low: " + str(channel_low))
@@ -233,5 +238,5 @@ def countOpenTrades(BuySell=None):
 
 Prepare() # Initialize strategy
 con.subscribe_market_data(symbol, (Update,)) # Subscribe to Tick Data
-con.set_max_prices(100) # Set maximum number of most recent Ticks to store inside of dataframe
+con.set_max_prices(1000) # Set maximum number of most recent Ticks to store inside of dataframe
 StrategyHeartBeat() # Run strategy
