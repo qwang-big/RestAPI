@@ -30,7 +30,7 @@ if(token === 'PASTE_YOUR_TOKEN_HERE') {
 //
 var EventEmitter = require('events');
 var cli = new EventEmitter();
-var io = require('socket.io-client');
+var io = require('/usr/local/lib/node_modules/socket.io-client/');
 var socket;
 var querystring = require('querystring');
 var tradinghttp = require(trading_api_proto);
